@@ -1,0 +1,18 @@
+{
+  "name": "@rose/ir",
+  "version": "1.0.0",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "license": "MIT",
+  "scripts": {
+    "postinstall": "tsc",
+    "start": "ts-node ./src/index.ts"
+  },
+  "devDependencies": {
+    "ts-node": "^9.1.1",
+    "typescript": "^4.1.4"
+  },
+  "dependencies": {
+    "@rose/common": "1.0.0"
+  }
+}
