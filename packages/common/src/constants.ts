@@ -16,18 +16,3 @@ export enum Normalized {
   FSLASH = "_FSLASH_",
   BSLASK = "_BSLASH_",
 }
-
-export enum Unormalized {
-  MINUS = "-",
-  GT = ">",
-  LT = "<",
-  EQ = "=",
-  DOT = ".",
-  BANG = "!",
-  PIPE = "|",
-  STAR = "*",
-  PLUS = "+",
-  QMARK = "?",
-  FSLASH = "/",
-  BSLASK = "\\",
-}

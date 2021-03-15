@@ -1,15 +1,23 @@
 import {
   Program,
   ParserList,
-  ParserConcreteNode,
   ParserNumber,
   ParserString,
   ParserSymbol,
   CompilerNodeType,
+  ParserConcreteNode,
 } from "@rose/common";
 
 import { isInternalSymbol } from "./logic/symbol";
-import { IrCall, IrDefine, IrNode, IrNumber, IrString } from "./ast";
+import {
+  IrDefine,
+  IrList,
+  IrNode,
+  IrNumber,
+  IrProgram,
+  IrString,
+  IrSymbol,
+} from "./ast";
 
 const internalizeExpr = (node: ParserConcreteNode): IrNode => {
   if (node instanceof ParserList) {
@@ -28,34 +36,27 @@ const internalizeExpr = (node: ParserConcreteNode): IrNode => {
     return internalizeSymbol(node);
   }
 
-  throw new Error("unexpected type");
+  throw new Error("unexpected node");
 };
 
-const internalizeList = (listNode: ParserList) => {
-  const [callee, ...args] = listNode.value.map((node) => internalizeExpr(node));
-
-  if (!callee) throw new Error("cannot call from undefined");
-
-  return new IrCall(listNode, callee, args);
-};
+const internalizeList = ({ type, loc, value }: ParserList) =>
+  new IrList({
+    loc,
+    type,
+    value: value.map((node) => internalizeExpr(node)),
+  });
 
 export const internalizeInternalSymbol = (symbolNode: ParserSymbol) => {
   switch (symbolNode.value) {
     case CompilerNodeType.DEFINE:
       return new IrDefine(symbolNode);
     default:
-      throw new Error("unexpected symbol");
+      throw new Error(`unexpected symbol ${symbolNode.value}`);
   }
 };
 
-export const internalizeDeclaredSymbol = (symbolNode: ParserSymbol) => {
-  switch (symbolNode.value) {
-    case CompilerNodeType.DEFINE:
-      return new IrDefine(symbolNode);
-    default:
-      throw new Error("unexpected symbol");
-  }
-};
+export const internalizeDeclaredSymbol = (symbolNode: ParserSymbol) =>
+  new IrSymbol(symbolNode);
 
 const internalizeNumber = (numberNode: ParserNumber) =>
   new IrNumber(numberNode);
@@ -63,16 +64,13 @@ const internalizeNumber = (numberNode: ParserNumber) =>
 const internalizeString = (stringNode: ParserString) =>
   new IrString(stringNode);
 
-const internalizeSymbol = (symbolNode: ParserSymbol) => {
-  if (isInternalSymbol(symbolNode)) {
-    return internalizeInternalSymbol(symbolNode);
-  } else {
-    return internalizeDeclaredSymbol(symbolNode);
-  }
-};
+const internalizeSymbol = (symbolNode: ParserSymbol) =>
+  isInternalSymbol(symbolNode)
+    ? internalizeInternalSymbol(symbolNode)
+    : internalizeDeclaredSymbol(symbolNode);
 
-export const internalize = (program: Program) => {
-  const internalizedExprs = program.exprs.map((expr) => internalizeExpr(expr));
-
-  return internalizedExprs;
-};
+export const internalize = ({ exprs, namespace }: Program) =>
+  new IrProgram(
+    namespace,
+    exprs.map((expr) => internalizeExpr(expr))
+  );
