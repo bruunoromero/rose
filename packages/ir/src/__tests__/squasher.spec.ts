@@ -1,18 +1,25 @@
-import { makeDummyCompilerList } from "@rose/test-helper";
 import "jest";
 import {
+  squashCall,
+  squashDefine,
+  squashFn,
   squashNumber,
   squashRequire,
   squashString,
   squashSymbol,
 } from "../squasher";
 import {
+  SquashCall,
+  SquashDefine,
+  SquashFn,
   SquashNumber,
   SquashRequire,
   SquashString,
   SquashSymbol,
 } from "../squasher/ast";
 import {
+  makeDummyInternalizerDefine,
+  makeDummyInternalizerFn,
   makeDummyInternalizerList,
   makeDummyInternalizerNumber,
   makeDummyInternalizerRequire,
@@ -176,5 +183,279 @@ describe("squashRequire", () => {
     expect(requireNode2).toThrow();
     expect(requireNode3).toThrow();
     expect(requireNode4).toThrow();
+  });
+});
+
+describe("squashDefine", () => {
+  it("should take an IrList with IrDefine as first node and returns an SquashDefine", () => {
+    const requireNode1 = squashDefine(
+      makeDummyInternalizerList([
+        makeDummyInternalizerDefine(),
+        makeDummyInternalizerSymbol("symbol"),
+        makeDummyInternalizerNumber(10),
+      ])
+    );
+
+    const requireNode2 = squashDefine(
+      makeDummyInternalizerList([
+        makeDummyInternalizerDefine(),
+        makeDummyInternalizerSymbol("rose.core"),
+        makeDummyInternalizerSymbol("rose.core"),
+      ])
+    );
+
+    expect(requireNode1).toBeInstanceOf(SquashDefine);
+    expect(requireNode1.symbol.value).toEqual("symbol");
+    expect(requireNode1.symbol).toBeInstanceOf(SquashSymbol);
+    expect(requireNode1.value).toBeInstanceOf(SquashNumber);
+
+    expect(requireNode2).toBeInstanceOf(SquashDefine);
+    expect(requireNode2.symbol.value).toEqual("rose.core");
+    expect(requireNode2.value).toBeInstanceOf(SquashSymbol);
+    expect(requireNode2.symbol).toBeInstanceOf(SquashSymbol);
+  });
+
+  it("should throw an error when the first node is not an IrDefine", () => {
+    const requireNode1 = () =>
+      squashDefine(
+        makeDummyInternalizerList([
+          makeDummyInternalizerRequire(),
+          makeDummyInternalizerSymbol("symbol"),
+          makeDummyInternalizerNumber(10),
+        ])
+      );
+
+    const requireNode2 = () =>
+      squashDefine(
+        makeDummyInternalizerList([
+          makeDummyInternalizerSymbol("a"),
+          makeDummyInternalizerSymbol("rose.core"),
+          makeDummyInternalizerSymbol("rose.core"),
+        ])
+      );
+
+    expect(requireNode1).toThrow();
+    expect(requireNode2).toThrow();
+  });
+
+  it("should throw an error when the second node is not an IrSymbol", () => {
+    const requireNode1 = () =>
+      squashDefine(
+        makeDummyInternalizerList([
+          makeDummyInternalizerDefine(),
+          makeDummyInternalizerNumber(10),
+          makeDummyInternalizerSymbol("symbol"),
+        ])
+      );
+
+    const requireNode2 = () =>
+      squashDefine(
+        makeDummyInternalizerList([
+          makeDummyInternalizerDefine(),
+          makeDummyInternalizerString("rose.core"),
+          makeDummyInternalizerSymbol("rose.core"),
+        ])
+      );
+
+    expect(requireNode1).toThrow();
+    expect(requireNode2).toThrow();
+  });
+
+  it("should throw an error when the third node is not defined", () => {
+    const requireNode1 = () =>
+      squashDefine(
+        makeDummyInternalizerList([
+          makeDummyInternalizerDefine(),
+          makeDummyInternalizerSymbol("symbol"),
+        ])
+      );
+
+    expect(requireNode1).toThrow();
+  });
+});
+
+describe("squashFn", () => {
+  it("should take an IrList with IrFn as first node and returns an SquashFn", () => {
+    const requireNode1 = squashFn(
+      makeDummyInternalizerList([
+        makeDummyInternalizerFn(),
+        makeDummyInternalizerList([]),
+        makeDummyInternalizerNumber(10),
+      ])
+    );
+
+    const requireNode2 = squashFn(
+      makeDummyInternalizerList([
+        makeDummyInternalizerFn(),
+        makeDummyInternalizerList([
+          makeDummyInternalizerSymbol("a"),
+          makeDummyInternalizerSymbol("b"),
+        ]),
+        makeDummyInternalizerSymbol("rose.core"),
+      ])
+    );
+
+    expect(requireNode1.args).toEqual([]);
+    expect(requireNode1).toBeInstanceOf(SquashFn);
+    expect(requireNode1.value).toBeInstanceOf(SquashNumber);
+
+    expect(requireNode2).toBeInstanceOf(SquashFn);
+    expect(requireNode2.args[0]?.value).toEqual("a");
+    expect(requireNode2.args[1]?.value).toEqual("b");
+    expect(requireNode2.value).toBeInstanceOf(SquashSymbol);
+  });
+
+  it("should throw an error when the first node is not an IrFn", () => {
+    const requireNode1 = () =>
+      squashFn(
+        makeDummyInternalizerList([
+          makeDummyInternalizerRequire(),
+          makeDummyInternalizerList([
+            makeDummyInternalizerSymbol("a"),
+            makeDummyInternalizerSymbol("b"),
+          ]),
+          makeDummyInternalizerSymbol("rose.core"),
+        ])
+      );
+
+    const requireNode2 = () =>
+      squashFn(
+        makeDummyInternalizerList([
+          makeDummyInternalizerSymbol("a"),
+          makeDummyInternalizerList([
+            makeDummyInternalizerSymbol("a"),
+            makeDummyInternalizerSymbol("b"),
+          ]),
+          makeDummyInternalizerSymbol("rose.core"),
+        ])
+      );
+
+    expect(requireNode1).toThrow();
+    expect(requireNode2).toThrow();
+  });
+
+  it("should throw an error when the second node is not an IrList", () => {
+    const requireNode1 = () =>
+      squashFn(
+        makeDummyInternalizerList([
+          makeDummyInternalizerFn(),
+          makeDummyInternalizerSymbol("rose.core"),
+          makeDummyInternalizerSymbol("symbol"),
+        ])
+      );
+
+    const requireNode2 = () =>
+      squashFn(
+        makeDummyInternalizerList([
+          makeDummyInternalizerFn(),
+          makeDummyInternalizerNumber(10),
+          makeDummyInternalizerSymbol("rose.core"),
+        ])
+      );
+
+    expect(requireNode1).toThrow();
+    expect(requireNode2).toThrow();
+  });
+
+  it("should not all nodes of the params list is IrSymbol", () => {
+    const requireNode1 = () =>
+      squashFn(
+        makeDummyInternalizerList([
+          makeDummyInternalizerFn(),
+          makeDummyInternalizerList([
+            makeDummyInternalizerSymbol("a"),
+            makeDummyInternalizerString("b"),
+          ]),
+        ])
+      );
+
+    const requireNode2 = () =>
+      squashFn(
+        makeDummyInternalizerList([
+          makeDummyInternalizerFn(),
+          makeDummyInternalizerList([
+            makeDummyInternalizerString("b"),
+            makeDummyInternalizerSymbol("a"),
+          ]),
+        ])
+      );
+
+    const requireNode3 = () =>
+      squashFn(
+        makeDummyInternalizerList([
+          makeDummyInternalizerFn(),
+          makeDummyInternalizerList([
+            makeDummyInternalizerString("a"),
+            makeDummyInternalizerNumber(10),
+          ]),
+        ])
+      );
+
+    expect(requireNode1).toThrow();
+    expect(requireNode2).toThrow();
+    expect(requireNode3).toThrow();
+  });
+
+  it("should throw an error when the third node is not defined", () => {
+    const requireNode1 = () =>
+      squashFn(
+        makeDummyInternalizerList([
+          makeDummyInternalizerFn(),
+          makeDummyInternalizerList([
+            makeDummyInternalizerSymbol("a"),
+            makeDummyInternalizerSymbol("b"),
+          ]),
+        ])
+      );
+
+    expect(requireNode1).toThrow();
+  });
+});
+
+describe("squashCall", () => {
+  it("should take an IrList and returns a SquashCall", () => {
+    const requireNode1 = squashCall(
+      makeDummyInternalizerList([
+        makeDummyInternalizerSymbol("a"),
+        makeDummyInternalizerNumber(10),
+      ])
+    );
+
+    const requireNode2 = squashCall(
+      makeDummyInternalizerList([
+        makeDummyInternalizerList([
+          makeDummyInternalizerSymbol("b"),
+          makeDummyInternalizerSymbol("rose.core"),
+          makeDummyInternalizerNumber(10),
+        ]),
+        makeDummyInternalizerSymbol("rose.core"),
+        makeDummyInternalizerString("hi!"),
+      ])
+    );
+
+    const requireNode3 = squashCall(
+      makeDummyInternalizerList([
+        makeDummyInternalizerSymbol("rose.core/value"),
+      ])
+    );
+
+    expect(requireNode1).toBeInstanceOf(SquashCall);
+    expect(requireNode1.callee).toBeInstanceOf(SquashSymbol);
+    expect(requireNode1.args[0]).toBeInstanceOf(SquashNumber);
+
+    expect(requireNode2).toBeInstanceOf(SquashCall);
+    expect(requireNode2.callee).toBeInstanceOf(SquashCall);
+    expect(requireNode2.args[0]).toBeInstanceOf(SquashSymbol);
+    expect(requireNode2.args[1]).toBeInstanceOf(SquashString);
+
+    expect(requireNode3.args).toEqual([]);
+    expect(requireNode3).toBeInstanceOf(SquashCall);
+    expect(requireNode3.callee).toBeInstanceOf(SquashSymbol);
+  });
+
+  it("should throw an error when the first node is not defined", () => {
+    const requireNode1 = () => squashFn(makeDummyInternalizerList([]));
+
+    expect(requireNode1).toThrow();
   });
 });

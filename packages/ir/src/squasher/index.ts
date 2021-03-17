@@ -40,8 +40,12 @@ export const squashRequire = (node: IrList) => {
   return new SquashRequire(node, squashSymbol(required));
 };
 
-export const squashDefine = (node: IrList): SquashNode => {
-  const [, symbol, value] = node.value;
+export const squashDefine = (node: IrList): SquashDefine => {
+  const [defineNode, symbol, value] = node.value;
+
+  if (!(defineNode instanceof IrDefine)) {
+    throw new Error("cannot squash node other than IrDefine");
+  }
 
   if (!(symbol instanceof IrSymbol)) {
     throw new Error("define should take a symbol as first argument");
@@ -55,7 +59,11 @@ export const squashDefine = (node: IrList): SquashNode => {
 };
 
 export const squashFn = (node: IrList): SquashFn => {
-  const [, list, value] = node.value;
+  const [fnNode, list, value] = node.value;
+
+  if (!(fnNode instanceof IrFn)) {
+    throw new Error("cannot squash node other than IrFn");
+  }
 
   if (!(list instanceof IrList)) {
     throw new Error("fn should take a list as first argument");
