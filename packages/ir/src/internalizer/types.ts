@@ -1,8 +1,9 @@
 export enum IrNodeType {
-  CALL,
+  FN,
   LIST,
   DEFINE,
   SYMBOL,
   NUMBER,
   STRING,
+  REQUIRE,
 }

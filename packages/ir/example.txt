@@ -1,0 +1,5 @@
+(require rose.core)
+
+(def main/test 
+  (fn (__local__/a __local__/b)
+    (rose.core/+ __local__/a __local__/b)))

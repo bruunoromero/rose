@@ -1,5 +1,6 @@
 export enum Constants {
   NAMESPACE_SEPARATOR = "/",
+  LOCAL_NAMESPACE = "__local__",
 }
 
 export enum Normalized {

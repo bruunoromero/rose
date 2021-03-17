@@ -3,7 +3,6 @@ import { Symbol } from "./symbol";
 import { Utils } from "./utils";
 export { Constants } from "./constants";
 export * from "./ast";
-export * from "./ir";
 export * from "./codegen";
 export * from "./compiler";
 

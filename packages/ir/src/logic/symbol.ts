@@ -1,7 +1,11 @@
-import { ParserSymbol, Constants } from "@rose/common";
+import { CompilerNodeType, CompilerSymbol, Constants } from "@rose/common";
 
-export const isDeclaredSymbol = (symbol: ParserSymbol) =>
-  symbol.value.includes(Constants.NAMESPACE_SEPARATOR);
+export const isDeclaredSymbol = (symbol: CompilerSymbol) =>
+  !isInternalSymbol(symbol);
 
-export const isInternalSymbol = (symbol: ParserSymbol) =>
-  !isDeclaredSymbol(symbol);
+export const isInternalSymbol = (symbol: CompilerSymbol) =>
+  [
+    CompilerNodeType.FN as string,
+    CompilerNodeType.DEFINE,
+    CompilerNodeType.REQUIRE,
+  ].includes(symbol.value);

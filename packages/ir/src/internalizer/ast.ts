@@ -1,17 +1,11 @@
-import {
-  Location,
-  ParserConcreteNode,
-  ParserList,
-  ParserNode,
-  Program,
-} from "@rose/common";
+import { Location, CompilerNode } from "@rose/common";
 import { IrNodeType } from "./types";
 
 export abstract class IrNode<T = any> {
   readonly loc: Location;
   readonly value: T;
 
-  constructor(node: ParserNode<T>) {
+  constructor(node: CompilerNode<T>) {
     this.loc = node.loc;
     this.value = node.value;
   }
@@ -21,12 +15,16 @@ export abstract class IrNode<T = any> {
       return IrNodeType.DEFINE;
     }
 
-    if (this instanceof IrCall) {
-      return IrNodeType.CALL;
+    if (this instanceof IrDefine) {
+      return IrNodeType.DEFINE;
     }
 
-    if (this instanceof IrSymbol) {
-      return IrNodeType.SYMBOL;
+    if (this instanceof IrRequire) {
+      return IrNodeType.REQUIRE;
+    }
+
+    if (this instanceof IrFn) {
+      return IrNodeType.FN;
     }
 
     if (this instanceof IrString) {
@@ -45,20 +43,13 @@ export abstract class IrNode<T = any> {
   }
 }
 
+export class IrFn extends IrNode<string> {}
 export class IrDefine extends IrNode<string> {}
+export class IrRequire extends IrNode<string> {}
 export class IrSymbol extends IrNode<string> {}
 export class IrNumber extends IrNode<number> {}
 export class IrString extends IrNode<string> {}
 export class IrList extends IrNode<IrNode[]> {}
-export class IrCall extends IrNode<ParserConcreteNode[]> {
-  constructor(
-    node: ParserList,
-    public readonly callee: IrNode<any>,
-    public readonly args: IrNode<any>[]
-  ) {
-    super(node);
-  }
-}
 export class IrProgram {
   constructor(
     public readonly namespace: string,
