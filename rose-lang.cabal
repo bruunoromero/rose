@@ -1,0 +1,75 @@
+cabal-version:      2.4
+name:               rose-lang
+version:            0.1.0.0
+synopsis:
+homepage:
+license:
+author:             bruunoromero
+maintainer:         bruunobromero@gmail.com
+category:           Language
+extra-source-files: CHANGELOG.md
+
+library
+  exposed-modules:  Rose.Parser
+  other-modules:
+    Paths_rose_lang
+    Rose.Parser.Ast.Common
+    Rose.Parser.Ast.Definition
+    Rose.Parser.Ast.Expr
+    Rose.Parser.Ast.Module
+    Rose.Parser.Language
+
+  build-depends:
+    , base        ^>=4.14.3.0
+    , either      ^>=5.0.1.1
+    , flow        ^>=1.0.22
+    , megaparsec  ^>=9.1.0
+    , mtl         ^>=2.2.2
+    , newtype     ^>=0.2.2.0
+    , scientific  ^>=0.3.7.0
+    , text        ^>=1.2.5.0
+
+  hs-source-dirs:   src
+  default-language: Haskell2010
+
+executable rose-lang
+  main-is:          Main.hs
+  build-depends:
+    , base           ^>=4.14.3.0
+    , flow           ^>=1.0.22
+    , pretty-simple  ^>=4.0.0.0
+    , rose-lang
+
+  hs-source-dirs:   app
+  default-language: Haskell2010
+
+test-suite rose-lang-test
+  default-language:   Haskell2010
+  type:               exitcode-stdio-1.0
+  hs-source-dirs:     test src
+  main-is:            Spec.hs
+  build-depends:
+    , base              ^>=4.14.3.0
+    , either            ^>=5.0.1.1
+    , flow              ^>=1.0.22
+    , hspec             ^>=2.8
+    , hspec-megaparsec  ^>=2.2.0
+    , megaparsec        ^>=9.1.0
+    , mtl               ^>=2.2.2
+    , newtype           ^>=0.2.2.0
+    , QuickCheck        ^>=2.14.2
+    , rose-lang
+    , scientific        ^>=0.3.7.0
+    , text              ^>=1.2.5.0
+
+  other-modules:
+    Paths_rose_lang
+    Rose.Parser.Ast.Common
+    Rose.Parser.Ast.Definition
+    Rose.Parser.Ast.Expr
+    Rose.Parser.Ast.Module
+    Rose.Parser.Language
+    Rose.Parser.LanguageSpec
+    TestHelper
+
+  build-tool-depends: hspec-discover:hspec-discover ==2.*
