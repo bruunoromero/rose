@@ -4,7 +4,6 @@ module Rose.Parser.Language where
 
 import Control.Monad (void)
 import Data.Functor (($>))
-import qualified Data.Scientific as DS
 import Data.Text (Text)
 import Data.Void (Void)
 import Text.Megaparsec (Parsec, (<?>), (<|>))
@@ -31,10 +30,6 @@ data Number
 
 type Parser = Parsec Void Text
 
-wrapNumber :: Either Double Integer -> Number
-wrapNumber (Left f) = FloatLiteral f
-wrapNumber (Right i) = IntLiteral i
-
 lineComment :: Parser ()
 lineComment = L.skipLineComment "#"
 
@@ -57,7 +52,13 @@ betweenNl :: Parser a -> Parser a
 betweenNl = P.between nl nl
 
 number :: Parser Number
-number = wrapNumber . DS.floatingOrInteger <$> lexeme L.scientific
+number = P.try double <|> integer
+
+integer :: Parser Number
+integer = IntLiteral <$> lexeme L.decimal
+
+double :: Parser Number
+double = FloatLiteral <$> lexeme L.float
 
 opStart :: Parser Char
 opStart = opLetter
@@ -88,7 +89,7 @@ opLetter =
     ]
 
 identStart :: Parser Char
-identStart = (PC.alphaNumChar <|> PC.char '_') <?> "identStart"
+identStart = (PC.letterChar <|> PC.char '_') <?> "identStart"
 
 identLetter :: Parser Char
 identLetter = (PC.alphaNumChar <|> P.oneOf ['_']) <?> "identLetter"

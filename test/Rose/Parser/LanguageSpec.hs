@@ -5,7 +5,7 @@ module Rose.Parser.LanguageSpec where
 import qualified Rose.Parser.Language as L
 import Test.Hspec (Expectation, HasCallStack, Spec, describe, it, shouldBe)
 import Test.Hspec.Megaparsec (initialState, shouldParse, succeedsLeaving)
-import TestHelper (parse, shouldFail, shouldSucceed, statefulParse)
+import Test.Hspec.Megaparsec.Extra (parse, shouldFail, shouldSucceed, statefulParse)
 import Text.Megaparsec (runParser')
 
 spec :: Spec
@@ -50,3 +50,53 @@ spec = do
       shouldFail $ parse (L.reserved "abc") "def"
       shouldFail $ parse (L.reserved "____") "----"
       shouldFail $ parse (L.reserved "1234") "4321"
+
+  describe "number" $ do
+    it "should parse an integer number" $ do
+      parse L.number "0" `shouldParse` L.IntLiteral 0
+      parse L.number "3" `shouldParse` L.IntLiteral 3
+      parse L.number "10" `shouldParse` L.IntLiteral 10
+      parse L.number "20" `shouldParse` L.IntLiteral 20
+      parse L.number "123" `shouldParse` L.IntLiteral 123
+
+    it "should parse a float number" $ do
+      parse L.number "0.0" `shouldParse` L.FloatLiteral 0.0
+      parse L.number "3.1" `shouldParse` L.FloatLiteral 3.1
+      parse L.number "10.0" `shouldParse` L.FloatLiteral 10.0
+      parse L.number "20.4" `shouldParse` L.FloatLiteral 20.4
+      parse L.number "12.34567" `shouldParse` L.FloatLiteral 12.34567 
+      statefulParse L.number "12.34567.0" `succeedsLeaving` ".0"
+
+    it "should fail to parse what was given as argument" $ do
+      shouldFail $ parse L.number "module"
+      shouldFail $ parse L.number "-10"
+      shouldFail $ parse L.number ""
+      shouldFail $ parse L.number " "
+      shouldFail $ parse L.number "-"
+      shouldFail $ parse L.number "__"
+
+  describe "identifier" $ do
+    it "should parse an identifier" $ do
+      parse L.identifier  "_" `shouldParse` L.Identifier "_"
+      parse L.identifier  "d" `shouldParse` L.Identifier "d"
+      parse L.identifier  "abc" `shouldParse` L.Identifier "abc"
+      parse L.identifier  "_abc" `shouldParse` L.Identifier "_abc"
+      parse L.identifier  "a123" `shouldParse` L.Identifier "a123"
+
+    it "should fail parse an identifier" $ do
+      shouldFail $ parse L.identifier ""
+      shouldFail $ parse L.identifier " "
+      shouldFail $ parse L.identifier "123a"
+      shouldFail $ parse L.identifier "-abc"
+      shouldFail $ parse L.identifier "?bcd"
+
+  describe "parens" $ do
+    it "should take a parser and returns what was parsed around parens" $ do
+      parse (L.parens L.number) "(0)" `shouldParse` L.IntLiteral 0
+      parse (L.parens L.number) "(0.0)" `shouldParse` L.FloatLiteral 0.0
+      parse (L.parens L.identifier) "(abc)" `shouldParse` L.Identifier "abc"
+
+    it "should fail to parse what was given as argument" $ do
+      shouldFail $ parse (L.parens L.number) "0"
+      shouldFail $ parse (L.parens L.number) "0.0"
+      shouldFail $ parse (L.parens L.identifier) "abc"

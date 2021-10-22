@@ -1,3 +1,5 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 module Rose.Parser.Ast.Expr where
 
 import GHC.Show (Show)
